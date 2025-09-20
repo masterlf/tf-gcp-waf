@@ -1,0 +1,19 @@
+project_id  = "my-prod-project"
+policy_name = "prod-cloud-armor-waf"
+
+default_rule_action = "allow"
+allowed_cidr_ranges = [
+  "203.0.113.0/24",
+]
+
+target_backend_services = [
+  "https://www.googleapis.com/compute/v1/projects/my-prod-project/global/backendServices/prod-web"
+]
+
+rate_limit_threshold = {
+  count            = 300
+  interval_seconds = 60
+}
+
+rate_limit_enforce_on_key = "IP"
+json_parsing              = "STANDARD"
