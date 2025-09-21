@@ -27,7 +27,7 @@ variable "allowed_cidr_ranges" {
 }
 
 variable "target_backend_services" {
-  description = "List of backend service self links that should be protected by the policy."
+  description = "DEPRECATED: Backend services should reference the security policy directly via security_policy attribute."
   type        = list(string)
   default     = []
 }
