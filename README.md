@@ -92,6 +92,21 @@ terraform test
 
 The tests mock the Google provider so that no Google Cloud credentials are required during CI execution.
 
+## Continuous Integration and Security Scanning
+
+Every push and pull request automatically triggers the **Infrastructure CI** workflow located in
+`.github/workflows/ci.yml`. The pipeline provides fast feedback on infrastructure changes by running the
+following stages:
+
+1. **Terraform quality checks** &mdash; Ensures source consistency and buildability by executing
+   `terraform fmt -check -recursive`, `terraform validate` on the module and production environment, and
+   `terraform test` for regression coverage.
+2. **IaC security scan** &mdash; Runs [`tfsec`](https://aquasecurity.github.io/tfsec/) against the repository to flag
+   misconfigurations and policy violations before deployment.
+
+To reproduce these checks locally, run the commands above for formatting, validation, and tests, then execute
+`docker run --rm -v "$PWD":/src -w /src aquasec/tfsec /src` to perform the same static analysis used in CI.
+
 ## Extending the Solution
 
 - Attach the policy to additional backend services by appending their self links to `target_backend_services`.

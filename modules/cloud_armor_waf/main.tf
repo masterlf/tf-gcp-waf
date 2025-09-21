@@ -75,7 +75,7 @@ resource "google_compute_security_policy" "waf" {
   }
 
   dynamic "rule" {
-    for_each = length(var.allowed_cidr_ranges) > 0 ? [var.allowed_cidr_ranges] : []
+    for_each = length(var.allowed_cidr_ranges) == 0 ? [] : [1]
 
     content {
       priority    = 100
@@ -85,12 +85,8 @@ resource "google_compute_security_policy" "waf" {
       match {
         versioned_expr = "SRC_IPS_V1"
         config {
-          src_ip_ranges = rule.value
+          src_ip_ranges = var.allowed_cidr_ranges
         }
-      }
-
-      log_config {
-        enable = var.enable_logging
       }
     }
   }
@@ -108,10 +104,6 @@ resource "google_compute_security_policy" "waf" {
         expr {
           expression = rule.value.expression
         }
-      }
-
-      log_config {
-        enable = var.enable_logging
       }
     }
   }
@@ -136,10 +128,6 @@ resource "google_compute_security_policy" "waf" {
         interval_sec = var.rate_limit_threshold.interval_seconds
       }
     }
-
-    log_config {
-      enable = var.enable_logging
-    }
   }
 
   rule {
@@ -152,18 +140,9 @@ resource "google_compute_security_policy" "waf" {
         expression = "true"
       }
     }
-
-    log_config {
-      enable = var.enable_logging
-    }
   }
 }
 
-resource "google_compute_security_policy_association" "attachments" {
-  for_each = { for backend in var.target_backend_services : backend => substr(sha1(backend), 0, 8) }
-
-  name             = "${var.policy_name}-${each.value}"
-  security_policy  = google_compute_security_policy.waf.id
-  target_resource  = each.key
-  project          = var.project_id
-}
+# Note: Security policy attachment should be done at the backend service level
+# by setting the security_policy attribute on the google_compute_backend_service resource.
+# This module outputs the policy ID for use in backend service configurations.

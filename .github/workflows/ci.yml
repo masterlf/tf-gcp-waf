@@ -1,0 +1,55 @@
+name: Infrastructure CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  terraform-checks:
+    name: Terraform quality checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+          terraform_wrapper: false
+
+      - name: Ensure consistent formatting
+        run: terraform fmt -check -recursive
+
+      - name: Initialise module directory
+        run: terraform -chdir=modules/cloud_armor_waf init -backend=false
+
+      - name: Validate module configuration
+        run: terraform -chdir=modules/cloud_armor_waf validate
+
+      - name: Initialise production environment
+        run: terraform -chdir=environments/prod init -backend=false
+
+      - name: Validate production environment
+        run: terraform -chdir=environments/prod validate
+
+      - name: Execute Terraform tests
+        run: terraform test
+
+  security-scan:
+    name: IaC security scan
+    runs-on: ubuntu-latest
+    needs: terraform-checks
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run tfsec static analysis
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/src" \
+            -w /src \
+            aquasec/tfsec:latest \
+            /src
