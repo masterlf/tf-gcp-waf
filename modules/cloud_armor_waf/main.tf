@@ -75,7 +75,7 @@ resource "google_compute_security_policy" "waf" {
   }
 
   dynamic "rule" {
-    for_each = length(var.allowed_cidr_ranges) > 0 ? [var.allowed_cidr_ranges] : []
+    for_each = length(var.allowed_cidr_ranges) == 0 ? [] : [1]
 
     content {
       priority    = 100
@@ -85,7 +85,7 @@ resource "google_compute_security_policy" "waf" {
       match {
         versioned_expr = "SRC_IPS_V1"
         config {
-          src_ip_ranges = rule.value
+          src_ip_ranges = var.allowed_cidr_ranges
         }
       }
 
