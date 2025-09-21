@@ -29,7 +29,10 @@ run "cloud_armor_waf_plan" {
   }
 
   assert {
-    condition = length([for rule in plan.resource_changes.google_compute_security_policy.waf.change.after.rule : rule if rule.action == "deny(403)"]) >= 8
+    condition = length([
+      for rule in plan.resource_changes.google_compute_security_policy.waf.change.after.rule : rule
+      if rule.action == "deny(403)"
+    ]) >= 8
     error_message = "Expected OWASP deny rules to be configured."
   }
 

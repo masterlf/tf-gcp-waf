@@ -160,7 +160,9 @@ resource "google_compute_security_policy" "waf" {
 }
 
 resource "google_compute_security_policy_association" "attachments" {
-  for_each = { for backend in var.target_backend_services : backend => substr(sha1(backend), 0, 8) }
+  for_each = {
+    for backend in var.target_backend_services : backend => substr(sha1(backend), 0, 8)
+  }
 
   name             = "${var.policy_name}-${each.value}"
   security_policy  = google_compute_security_policy.waf.id
